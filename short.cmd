@@ -34,6 +34,9 @@ EXIT /B
 :CASE_listify
     python3 %ScriptPATH%\clipboard-listify.py %RestArguments%
     GOTO END_CASE
+:CASE_randnum
+    python3 %ScriptPATH%\random-number.py %RestArguments%
+    GOTO END_CASE
 
 :END_CASE
     GOTO EOF
