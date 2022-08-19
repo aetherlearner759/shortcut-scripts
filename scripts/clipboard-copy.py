@@ -3,7 +3,7 @@ import os
 import json
 import pyperclip
 
-from helperutils import GetResponse 
+from helper import GetResponse 
 """
 Saves text files into disk that you can copy into clipboard by commands.
 """
