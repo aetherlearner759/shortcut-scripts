@@ -19,7 +19,7 @@ class GetResponse:
             if self.stripResponse:
                 resp = resp.strip()
             
-            for choice in choices:
+            for choice in self.choices:
                 if (self.case_sensitive and choice == resp) or (not self.case_sensitive and choice.lower() == resp.lower()):
                     return resp 
         return
