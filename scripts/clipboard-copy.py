@@ -7,10 +7,23 @@ from helper import GetResponse
 """
 Saves text files into disk that you can copy into clipboard by commands.
 """
-
+# Copy text to clipboard
 def copy_text_from_store(args, textstore):
-    print(args)
-    pass
+	key = args.key
+	if key is None:
+		key = input("What is the key of the text you want to copy?  ").strip()
+	
+	while True:
+		if textstore.has(key):
+			text = textstore.get(key)
+			pyperclip.copy(text)
+			print("Pasted text to your clipboard")
+			break
+		else:
+			key = input(f"Unable to find key: {key}\nRetype the key (Or enter nothing to quit) ").strip()
+			if key == "":
+				break
+	return
 
 def save_text_to_store(args, textstore):
     print(args)
@@ -144,27 +157,6 @@ class ClipBoardStore:
 			del self.keys[key]
 		self.__updateKeysFile(key)
 		self.__updateTextFile(self.keys[key])
-
-
-
-# Copy text to clipboard
-def copy_mode(Args, TextStore):
-	key = Args.key
-	if key is None:
-		key = input("What is the key of the text you want to copy?  ").strip()
-	
-	while True:
-		if TextStore.has(key):
-			text = TextStore.get(key)
-			pyperclip.copy(text)
-			print("Pasted text to your clipboard")
-			break
-		else:
-			key = input("Unable to find key. Retype the key (Enter empty to quit) ").strip()
-			if key == "":
-				break
-	return
-
 
 # Remove key 
 def remove_mode(Args, TextStore):
