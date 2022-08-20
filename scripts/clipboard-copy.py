@@ -8,11 +8,83 @@ from helper import GetResponse
 Saves text files into disk that you can copy into clipboard by commands.
 """
 
+def copy_text_from_store(args):
+    print(args)
+    pass
+
+def save_text_to_store(args):
+    print(args)
+    pass
+
+def remove_text_from_store(args):
+    print(args)
+    pass
+
+def list_key_from_store(args):
+    print(args)
+    pass
+
 # Define the command-line arguments for this script
 def getArgumentParser():
-	parser = argparse.ArgumentParser()
-	parser.add_argument('mode', default="copy", nargs='?', choices=["copy", "save", "remove"], help="'copy' to copy text into clipboard. 'save' to save text into file. 'remove' to remove key")
-	parser.add_argument('-key', default=None, help="Key of the text to copy or save")
+	parser = argparse.ArgumentParser(
+		description="Manages a store of text that can be copied to the clipboard given a key.",
+		add_help=True,
+		allow_abbrev=True,
+		exit_on_error=True
+	)
+	subparser = parser.add_subparsers(
+		metavar="MODE", 
+		help="Specify which operation to perform",
+		required=True
+	)
+	# copy subcommand
+	copy_parser = subparser.add_parser(
+		"copy", aliases=['cp'],
+		help="Copy text into clipboard."
+	)
+	copy_parser.add_argument(
+		"key", nargs="?", default=None, type=str,
+		help="Key of the text to save. Key must have no whitespace."
+	)
+	copy_parser.set_defaults(handle=copy_text_from_store)
+	# save subcommand
+	save_parser = subparser.add_parser(
+		"save", aliases=['sv'],
+		help="Save text to copy into clipboard later."
+	)
+	save_parser.add_argument(
+		"key", nargs="?", default=None, type=str,
+		help="Key of the text to save. Key must have no whitespace."
+	)
+	save_parser.add_argument(
+		"-from", default="edit", choices=["edit", "clip", "file"], dest="frominput",
+		help="Where to get the text from. 'edit' (default) by opening an editor, 'clip' from clipboard, 'file' from text file in given file path."
+	)
+	save_parser.set_defaults(handle=save_text_to_store)
+	# remove subcommand
+	remove_parser = subparser.add_parser(
+		"remove", aliases=['rm'],
+		help="Remove saved text."
+	)
+	remove_parser.add_argument(
+		"key", nargs="?", default=None, type=str,
+		help="Key of the text to save. Key must have no whitespace."
+	)
+	remove_parser.add_argument(
+		"-confirm", action="store_true", 
+		help="Prompt for confirmation."
+	)
+	remove_parser.set_defaults(handle=remove_text_from_store)
+	# list subcommand
+	list_parser = subparser.add_parser(
+		"list",
+		help="List all keys pointing to saved texts."
+	)
+	list_parser.add_argument(
+		"name", nargs="?", default=None, type=str, 
+		help="Name of the keys to search for. Accepts wildcards: *, ?. Don't provide name parameter to get all keys."
+	)
+	list_parser.set_defaults(handle=list_key_from_store)
 	return parser
 
 
@@ -165,4 +237,8 @@ def main():
 	
 
 if __name__ == "__main__":
-	main()
+	#main()
+	arg = getArgumentParser()
+	arg = arg.parse_args()
+	arg.handle(arg)
+	#print(arg)
