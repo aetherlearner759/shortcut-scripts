@@ -96,9 +96,30 @@ def save_text_to_store(args, textstore):
 			continue
 	return 
 
+# Remove saved text given key
 def remove_text_from_store(args, textstore):
-    print(args)
-    pass
+	key = args.key
+	if key is None:
+		key = input("What is the key of the text you want to remove?  ").strip()
+	
+	while True:
+		if textstore.has(key):
+			if args.confirm:
+				print("Are you sure you want to delete this text?")
+				print(f"Key: {key}")
+				print(f"Text:\n{textstore.get(key)}")
+				resp = GetResponse(choices=["Y", "N"]).input("(Y or N)  ")
+				if resp == "N":
+					print("Terminate delete.")
+					return
+			textstore.remove(key)
+			print(f"Deleted text with key, {key}.")
+			break
+		else:
+			key = input(f"Unable to find key: {key}\nRetype the key (Or enter nothing to quit) ").strip()
+			if key == "":
+				break
+	return
 
 def list_key_from_store(args, textstore):
     print(args)
@@ -221,18 +242,9 @@ class ClipBoardStore:
 		
 	def remove(self, key):
 		if self.has(key):
+			self.__updateKeysFile(key)
+			self.__updateTextFile(self.keys[key], None)
 			del self.keys[key]
-		self.__updateKeysFile(key)
-		self.__updateTextFile(self.keys[key])
-
-# Remove key 
-def remove_mode(Args, TextStore):
-	# TODO: implement this
-	pass
-
-
-
-
 
 
 def main():
