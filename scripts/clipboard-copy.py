@@ -1,12 +1,13 @@
 import argparse
 import os
-import json
+import shelve
 import pyperclip
 
 from helper import GetResponse, PromptEditor
 """
 Saves text files into disk that you can copy into clipboard by commands.
 """
+#TODO: Better error handling for this whole code. Especially ClipBoardStore.
 def is_valid_clipboard_key(key):
     for c in key:
         if c.isspace():
@@ -122,8 +123,10 @@ def remove_text_from_store(args, textstore):
 	return
 
 def list_key_from_store(args, textstore):
-    print(args)
-    pass
+    #TODO: filtering with name parameter
+    for key in textstore.keys():
+        print(key)
+    return
 
 # Define the command-line arguments for this script
 def getArgumentParser():
@@ -192,59 +195,45 @@ def getArgumentParser():
 # Manages the saved clipboard text 
 class ClipBoardStore:
 	def __init__(self):
-		self.dataPATH = os.path.dirname(__file__) + "\\..\\data\\clipboard-copy"
-		with open(f"{self.dataPATH}\\keys.json", 'r') as keys_file:
-			self.keys = json.load(keys_file)
+		self.keyStorePath = os.path.dirname(__file__)+"\\..\\data\\clipboard-copy\\keys"
+		self.textFolderPath = os.path.dirname(__file__)+"\\..\\data\\clipboard-copy\\text\\"
 		return
-
 
 	def __nameTextFile(self, key):
 		return f"{key}-text.txt"
 
-	def __updateKeysFile(self, key):
-		keysPath = f"{self.dataPATH}\\keys.json"
-		# Make sure keys.json file is found
-		if not os.path.exists(keysPath):
-			raise FileNotFoundError(f"keys.json is not found in {keysPath}")
-		# Update keys file
-		if key is not None:
-			with open(keysPath, 'w') as keys_file:
-				json.dump(self.keys, keys_file)
-		return
-
-	def __updateTextFile(self, name, text):
-		textPath = f"{self.dataPATH}\\text\\{name}"
-		# Delete text file if text is None
-		if os.path.exists(textPath) and text is None:
-			os.remove(textPath)
-		# Otherwise update text file
-		else:
-			with open(textPath, 'w') as text_file:
-				text_file.write(text)
-		return
-
+	def keys(self):
+		keys = []
+		with shelve.open(self.keyStorePath) as keyStore:
+			for key in keyStore.keys():
+				keys.append(key)
+		return keys
 
 	def has(self, key):
-		return key in self.keys
+		with shelve.open(self.keyStorePath) as keyStore:
+			return key in keyStore
 
 	def get(self, key):
-		if key in self.keys:
-			with open(f"{self.dataPATH}\\text\\{self.keys[key]}", 'r') as text_file:
-				text = text_file.read()
+		with shelve.open(self.keyStorePath) as keyStore:
+			with open(f"{self.textFolderPath}{keyStore[key]}", "r") as text_file:
+				text = text_file.read() 
 				return text
-		else:
-			return None
 
-	def set(self, key, text=""):
-		self.keys[key] = self.__nameTextFile(key)
-		self.__updateKeysFile(key)
-		self.__updateTextFile(self.keys[key], text)
+	def set(self, key, text):
+		if text == "" or text is None:
+			raise ValueError("Text was not given")
+		with shelve.open(self.keyStorePath) as keyStore:
+			keyStore[key] = self.__nameTextFile(key)
+			with open(f"{self.textFolderPath}{keyStore[key]}", "w+") as text_file:
+				text_file.write(text)
+		return
 		
 	def remove(self, key):
-		if self.has(key):
-			self.__updateKeysFile(key)
-			self.__updateTextFile(self.keys[key], None)
-			del self.keys[key]
+		with shelve.open(self.keyStorePath) as keyStore:
+			if keyStore[key] is not None:
+				os.remove(self.textFolderPath+keyStore[key])
+				del keyStore[key]
+		return
 
 
 def main():
