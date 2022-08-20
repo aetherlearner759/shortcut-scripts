@@ -8,19 +8,19 @@ from helper import GetResponse
 Saves text files into disk that you can copy into clipboard by commands.
 """
 
-def copy_text_from_store(args):
+def copy_text_from_store(args, textstore):
     print(args)
     pass
 
-def save_text_to_store(args):
+def save_text_to_store(args, textstore):
     print(args)
     pass
 
-def remove_text_from_store(args):
+def remove_text_from_store(args, textstore):
     print(args)
     pass
 
-def list_key_from_store(args):
+def list_key_from_store(args, textstore):
     print(args)
     pass
 
@@ -223,22 +223,16 @@ def save_mode(Args, TextStore):
 
 
 def main():
-	Args = getArgumentParser()
-	TextStore = ClipBoardStore()
-	Args = Args.parse_args()
-
-	if Args.mode == "copy":
-		copy_mode(Args, TextStore)
-	elif Args.mode == "save":
-		save_mode(Args, TextStore)
-	else:
-		print(f"Unknown mode {Args.mode}")
+	args = getArgumentParser()
+	textstore = ClipBoardStore()
+	args = args.parse_args()
+ 
+	if args.handle is None:
+		print(f"Unknown mode {args.mode}")
+		return 
+	args.handle(args, textstore)
 	return
 	
 
 if __name__ == "__main__":
-	#main()
-	arg = getArgumentParser()
-	arg = arg.parse_args()
-	arg.handle(arg)
-	#print(arg)
+	main()
