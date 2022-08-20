@@ -57,7 +57,7 @@ def getArgumentParser():
 		help="Key of the text to save. Key must have no whitespace."
 	)
 	save_parser.add_argument(
-		"-from", default="edit", choices=["edit", "clip", "file"], dest="frominput",
+     	"-from", default="edit", choices=["edit", "clip", "file"], dest="frominput",
 		help="Where to get the text from. 'edit' (default) by opening an editor, 'clip' from clipboard, 'file' from text file in given file path."
 	)
 	save_parser.set_defaults(handle=save_text_to_store)
