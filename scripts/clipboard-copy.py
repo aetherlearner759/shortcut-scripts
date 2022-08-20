@@ -3,10 +3,16 @@ import os
 import json
 import pyperclip
 
-from helper import GetResponse 
+from helper import GetResponse, PromptEditor
 """
 Saves text files into disk that you can copy into clipboard by commands.
 """
+def is_valid_clipboard_key(key):
+    for c in key:
+        if c.isspace():
+            return False 
+    return True
+    
 # Copy text to clipboard
 def copy_text_from_store(args, textstore):
 	key = args.key
@@ -25,9 +31,70 @@ def copy_text_from_store(args, textstore):
 				break
 	return
 
+# Save text to file to copy into clipboard later 
 def save_text_to_store(args, textstore):
-    print(args)
-    pass
+	key = args.key
+	while True:
+		if key is None:
+			key = input("Set the key of the text. (Enter empty to quit)  ").strip()
+		if key == "":
+			break
+		if not is_valid_clipboard_key(key):
+			print("Key cannot have a whitespace")
+			continue
+		if textstore.has(key):
+			print("Key alread yexist")
+			# TODO: If key is already being used, ask for user if they are okay to overwrite, change current key, change the existing key, or quit
+
+		text = ""
+		if args.frominput == "edit":
+			message = 	"Replace this text with the text you want to save. When you are done, save this file and close.\n[Save an empty file to terminate or close the file without modifying anything]"
+			editor = PromptEditor(message)
+			text = editor.prompt()
+
+			if text == "" or text == message:
+				print("Terminating save.")
+				return
+		elif args.frominput == "clip":
+			text = pyperclip.paste()
+   
+			if text == "":
+				print("No text saved within clipboard. Please try again.")
+				return
+		elif args.frominput == "file":
+			filePath = input("Please input a file path: ")
+			with open(filePath, 'r') as inputFile:
+				text = inputFile.read()
+    
+			if text == "":
+				print("Empty file. Please try again.")
+				return
+		else:
+			print(f"Unknown form of input {args.frominput}")
+			return
+
+  		# Prompt for confirmation
+		print("\nIs this okay to save?\n")
+		print(f"Key: {key}")
+		print(f"Text:\n{text}")
+
+		resp = GetResponse(choices=["Y", "N"]).input("(Y or N)  ")
+		if resp == "Y":
+			textstore.set(key, text)
+			# Prompt for next action
+			resp = GetResponse(choices=["S", "C", "Q"]).input("Type S to save another. Type C to copy. Type Q to quit.  ")
+			if resp == "S":
+				key = None
+				continue
+			elif resp == "C":
+				copy_text_from_store(args, textstore)
+				break
+			elif resp == "Q":
+				break
+		elif resp == "N":
+			key = None
+			continue
+	return 
 
 def remove_text_from_store(args, textstore):
     print(args)
@@ -164,53 +231,7 @@ def remove_mode(Args, TextStore):
 	pass
 
 
-# Save text to file to copy into clipboard later 
-def save_mode(Args, TextStore):
-	key = Args.key
-	while True:
-		if key is None:
-			key = input("Set the key of the text. (Enter empty to quit)  ").strip()
-		if key == "":
-			break
-		# TODO: If key is already being used, ask for user if they are okay to overwrite, change current key, change the existing key, or quit
 
-		# FIXME: bad way for termination
-		# TODO: Have option to take text from saved text in clipboard with pyperclip.paste() by supplying a switch parameter in commandline
-		# TODO: Instead of asking to type in text into terminal, open a text editor to type in text instead like Git
-		print("Input text you want to save. (Type ; to stop)")
-		lines = []
-		while True:
-			line = input()
-			if line == ";":
-				break
-			lines.append(line)
-		text = '\n'.join(lines)
-		if text == "\n":
-			break
-
-		# Prompt for confirmation
-		print("\nIs this okay to save?\n")
-		print(f"Key: {key}")
-		print(f"Text:\n {text}")
-
-		resp = GetResponse(choices=["Y", "N"]).input("(Y or N)  ")
-		if resp == "Y":
-			TextStore.set(key, text)
-			# Prompt for next action
-			resp = GetResponse(choices=["S", "C", "Q"]).input("Type S to save another. Type C to copy. Type Q to quit.  ")
-			if resp == "S":
-				key = None
-				continue
-			elif resp == "C":
-				copy_mode(Args, TextStore)
-				break
-			elif resp == "Q":
-				break
-			
-		elif resp == "N":
-			key = None
-			continue
-	return 
 
 
 
